@@ -8,29 +8,29 @@ public class Percolation {
 	// create N-by-N grid, with all sites blocked
 	public Percolation(int N) {
 		//N^2+1 is the  victual top site,N^2+2 is the victual bottom site
-		int  cnt = N*N+2;
+		int  cnt = N*N+3;
 		isOpen=new boolean[cnt];
 		un=new WeightedQuickUnionUF(cnt);
-		this.top=cnt-1;
-		this.bottom=cnt-2;
+		this.top=cnt+1;
+		this.bottom=cnt+2;
 		isOpen[top]=true;
 		isOpen[bottom]=true;
-		for(int i=0;i<N;i++){
+		for(int i=1;i<=N;i++){
 			un.union(top, i);
 			un.union(bottom, bottom-1-i);
 		}
 		this.N=N;
 	}
 	private void check(int i,int j)throws java.lang.IndexOutOfBoundsException{
-		if(i<0||i>=N||j<0||j>=N)
+		if(i<1||i>N||j<1||j>N)
 			throw new IndexOutOfBoundsException("非法参数 "+ i +"-"+j);
 	}
 	// site up to (row i, column j), return -1 if x  top
 	private int up(int i, int j){
 		check(i,j);
 		int site=-1;
-		if(i>0&&i<N
-				&&j>=0&&j<N)
+		if(i>1&&i<=N
+				&&j>0&&j<=N)
 			site=this.site(i-1, j);
 		return site;
 	}
@@ -38,8 +38,8 @@ public class Percolation {
 	private int down(int i, int j){
 		check(i,j);
 		int site=-1;
-		if(i>=0&&i<N-1
-				&&j>=0&&j<N){
+		if(i>0&&i<N
+				&&j>0&&j<=N){
 			site=this.site(i+1, j);
 		}
 		return site;
@@ -48,8 +48,8 @@ public class Percolation {
 	private int left(int i, int j){
 		check(i,j);
 		int site=1;
-		if(i>=0&&i<N
-				&&j>0&&j<N){
+		if(i>0&&i<=N
+				&&j>1&&j<=N){
 			site=this.site(i, j-1);
 		}
 		return site;
@@ -58,16 +58,16 @@ public class Percolation {
 	private int right(int i, int j){
 		check(i,j);
 		int site=1;
-		if(i>=0&&i<N
-				&&j>=0&&j<N-1){
-			site=this.site(i, j-1);
+		if(i>0&&i<=N
+				&&j>0&&j<N){
+			site=this.site(i, j+1);
 		}
 		return site;
 	}
 	//
 	private int site(int i, int j){
 		check(i,j);
-		return i*N+j;
+		return (i-1)*N+j;
 	}
 	
 	// open site (row i, column j) if it is not open already
