@@ -1,3 +1,4 @@
+//http://coursera.cs.princeton.edu/algs4/assignments/percolation.html
 public class Percolation {
 	
 	private WeightedQuickUnionUF un;
