@@ -8,10 +8,10 @@ public class Percolation {
 	// create N-by-N grid, with all sites blocked
 	public Percolation(int N) {
 		//N^2+1 is the  victual top site,N^2+2 is the victual bottom site
-		int  cnt = N*N+3;
-		isOpen=new boolean[cnt];
-		un=new WeightedQuickUnionUF(cnt);
-		this.top=cnt+1;
+		int  cnt = N*N;
+		isOpen=new boolean[cnt+3];
+		un=new WeightedQuickUnionUF(cnt+3);
+		this.top=cnt+1;//N
 		this.bottom=cnt+2;
 		isOpen[top]=true;
 		isOpen[bottom]=true;
@@ -76,19 +76,19 @@ public class Percolation {
 			int site=this.site(i, j);
 			isOpen[site]=true;
 			int up=this.up(i, j);
-			if(isOpen[up]&&up!=-1){
+			if(up!=-1&&isOpen[up]){
 				un.union(site, up);
 			}
 			int down=this.down(i, j);
-			if(isOpen[down]&&down!=-1){
+			if(down!=-1&&isOpen[down]){
 				un.union(site, down);
 			}
 			int left=this.left(i, j);
-			if(isOpen[left]&&left!=-1){
+			if(left!=-1&&isOpen[left]){
 				un.union(site, left);
 			}
 			int right=this.right(i, j);
-			if(isOpen[right]&&right!=-1){
+			if(right!=-1&&isOpen[right]){
 				un.union(site, right);
 			}
 		}
