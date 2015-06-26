@@ -8,7 +8,7 @@ public class Percolation {
 
     // create N-by-N grid, with all sites blocked
     public Percolation(int N) {
-        if(N < 1){
+        if (N < 1) {
             throw new IllegalArgumentException("N :" + N);
         }
         this.N = N;
@@ -22,7 +22,7 @@ public class Percolation {
         isOpen[bottom] = true;
         for (int i = 1; i <= N; i++) {
             int first = site(1, i);
-//            int last = site(N, i);
+            // int last = site(N, i);
             un.union(this.top, first);
             // un.union(this.bottom, last);
         }
@@ -122,7 +122,12 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
-        return un.connected(top, bottom);
+        for (int i = 1; i <= N; i++) {
+            if (isFull(N, i))
+                return true;
+        }
+        return false;
+        // return un.connected(top, bottom);
     }
 
     public static void main(String[] args) {
