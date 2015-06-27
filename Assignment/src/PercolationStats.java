@@ -1,12 +1,8 @@
 public class PercolationStats {
-//    private Percolation percolation;
-    private int[] x;
-    private double[] rate;
     private double mean = -1;
     private double stddev = -1;
     private double confidenceLo = -1;
     private double confidenceHi = -1;
-    private int T;
 
     // perform T independent experiments on an N-by-N grid
     public PercolationStats(int N, int T) {
@@ -16,9 +12,9 @@ public class PercolationStats {
         if (T < 1)
             throw new java.lang.IllegalArgumentException("" + T
                     + " T must be integers greater than 0");
-        this.T = T;
-        x = new int[T];
-        rate = new double[T];
+        int[] x = new int[T];
+        double[] rate = new double[T];
+        double rateSum = 0; // to calculate mean
         for (int i = 0; i < T; i++) {
             Percolation percolation = new Percolation(N);
             while (!percolation.percolates()) {
@@ -29,46 +25,42 @@ public class PercolationStats {
                     x[i]++;
                 }
             }
-            percolation = null;
-            rate[i] = (double) x[i] / (double) (N * N);
+            percolation = null; 
+            rate[i] = (double) x[i] / (double) (N * N); 
+            rateSum += rate[i]; 
         }
+        // Calculate mean
+        this.mean = rateSum / (double) T; 
+        // Calculate stddev
+        double sum = 0; 
+        for (int i = 0; i < rate.length; i++) {
+            sum += Math.pow(rate[i] - mean, 2.0);
+        }
+        this.stddev = Math.pow(sum / (T - 1.0), 0.5);
+        // Calculate confidenceLo
+        this.confidenceLo = mean - 1.96 * stddev / Math.pow(T, 0.5);
+        // Calculate confidenceHi
+        this.confidenceHi = mean + 1.96 * stddev / Math.pow(T, 0.5);
     }
 
     // sample mean of percolation threshold
     public double mean() {
-        double sum = 0;
-        for (int i = 0; i < rate.length; i++) {
-            sum += rate[i];
-        }
-        this.mean = sum / (double) T;
         return this.mean;
     }
 
     // sample standard deviation of percolation threshold
     public double stddev() {
-        double sum = 0;
-        mean();
-        for (int i = 0; i < rate.length; i++) {
-            sum += Math.pow(rate[i] - mean, 2.0);
-        }
-        stddev = Math.pow(sum / (T - 1.0), 0.5);
-        return stddev;
+        return this.stddev;
     }
 
     // low endpoint of 95% confidence interval
     public double confidenceLo() {
-        if (confidenceLo == -1) {
-            confidenceLo = mean - 1.96 * stddev / Math.pow(T, 0.5);
-        }
-        return confidenceLo;
+        return this.confidenceLo;
     }
 
     // high endpoint of 95% confidence interval
     public double confidenceHi() {
-        if (confidenceHi == -1) {
-            confidenceHi = mean + 1.96 * stddev / Math.pow(T, 0.5);
-        }
-        return confidenceHi;
+        return this.confidenceHi;
     }
 
     // test client (described below)
