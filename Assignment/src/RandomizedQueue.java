@@ -12,6 +12,7 @@
  * and construction in linear time; you may use a linear amount of extra memory per iterator.
  */
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Assignment : http://coursera.cs.princeton.edu/algs4/assignments/queues.html
@@ -24,11 +25,13 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     private Item[] array; // array to hold items
     private int size;
     private int next; // position to add a new item
+    private java.util.Random random = new java.util.Random();
 
     // construct an empty randomized queue
     public RandomizedQueue() {
         this.size = 0;
         this.next = 0;
+//        random.setSeed(System.currentTimeMillis());
     }
 
     // is the queue empty?
@@ -42,13 +45,15 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     // add the item
-    @SuppressWarnings("unchecked")
     public void enqueue(Item item) {
+        if (item == null) {
+            throw new NullPointerException("cannot add null value");
+        }
         if (array == null)
             array = (Item[]) new Object[INIT_CAPACITY];
         // resizing array
         if (next == array.length) {
-            int capacity = 2 * this.size;
+            int capacity = 2 * this.size + INIT_CAPACITY;
             resizeArray(capacity);
         }
         array[this.next++] = item;
@@ -57,24 +62,26 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // remove and return a random item
     public Item dequeue() {
-        if (this.size == this.array.length / 4) {
-            resizeArray(this.array.length / 2);
+        if (this.size == 0)
+            throw new NoSuchElementException();
+        if (this.size == this.array.length / 4 && this.array.length > 10) {
+            resizeArray(this.size * 2);
         }
-        java.util.Random random = new java.util.Random();
-        random.setSeed(System.currentTimeMillis());
         int randomIndex = random.nextInt(next);
         while (array[randomIndex] == null) {
             randomIndex = random.nextInt(next);
         }
-        Item retValue = array[randomIndex];// set return value
-        this.array[randomIndex] = null;// remove from queue
+        Item retValue = array[randomIndex]; // set return value
+        this.array[randomIndex] = null; // remove from queue
         this.size--;
         return retValue;
     }
 
     // return (but do not remove) a random item
     public Item sample() {
-        java.util.Random random = new java.util.Random();
+        if (this.size == 0)
+            throw new NoSuchElementException();
+        // java.util.Random random = new java.util.Random();
         int randomIndex = random.nextInt(next);
         while (array[randomIndex] == null) {
             randomIndex = random.nextInt(next);
@@ -82,51 +89,56 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         return this.array[randomIndex];
     }
 
+    private class RandomIterator implements Iterator<Item> {
+        private int iterableSize;
+        private Item[] itrrableholder;
+        private int iterableNext;
+        private java.util.Random itRandom = new java.util.Random();
+
+        RandomIterator() {
+            iterableSize = size;
+            itrrableholder = (Item[]) new Object[iterableSize];
+//            itRandom.setSeed(System.currentTimeMillis());
+            // copy items
+            int k = 0;
+            for (int i = 0; i < next; i++) {
+                if (array[i] != null) {
+                    itrrableholder[k++] = array[i];
+                }
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterableSize != 0;
+        }
+
+        @Override
+        public Item next() {
+            if (!hasNext())
+                throw new NoSuchElementException();
+            iterableNext = itRandom.nextInt(size);
+            while (itrrableholder[iterableNext] == null) {
+                iterableNext = itRandom.nextInt(size);
+            }
+            Item ret = itrrableholder[iterableNext]; // set return value
+            itrrableholder[iterableNext] = null;
+            iterableSize--;
+            return ret;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     // return an independent iterator over items in random order
     public Iterator<Item> iterator() {
-        return new Iterator<Item>() {
-            int iterableSize = size;
-            @SuppressWarnings("unchecked")
-            Item[] itrrableholder = (Item[]) new Object[iterableSize];
-            int iterableNext;
-            java.util.Random random = new java.util.Random();
-            {
-                random.setSeed(System.currentTimeMillis());
-                // copy items
-                for (int i = 0, j = 0; i < next; i++) {
-                    if (array[i] != null) {
-                        itrrableholder[j++] = array[i];
-                    }
-                }
-                iterableNext = random.nextInt(size);
-            }
-
-            @Override
-            public boolean hasNext() {
-                return iterableSize != 0;
-            }
-
-            @Override
-            public Item next() {
-                while (itrrableholder[iterableNext] == null) {
-                    iterableNext = random.nextInt(size);
-                }
-                Item ret = itrrableholder[iterableNext]; // set return value
-                itrrableholder[iterableNext] = null;
-                iterableSize--;
-                return ret;
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-
-        };
+        return new RandomIterator();
     }
 
     private void resizeArray(int capaticy) {
-        @SuppressWarnings("unchecked")
         Item[] holder = (Item[]) new Object[capaticy];
         int j = 0;
         for (int i = 0; i < this.array.length; i++) {
@@ -147,7 +159,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         queue.enqueue("cc");
         queue.enqueue("dd");
         queue.enqueue("ee");
-        while(!queue.isEmpty())
+        while (!queue.isEmpty())
             System.out.println(queue.dequeue());
     }
 

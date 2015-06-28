@@ -34,8 +34,10 @@ public class Deque<Item> implements Iterable<Item> {
         checkAdd(item);
         // create new node and move head
         Node node = new Node();
-        node.value = item;
-        node.next = head;
+        node.setValue(item);
+        node.setNext(head);
+        if (head != null)
+            head.setPrev(node);
         head = node;
         if (this.size == 0)
             tail = head;
@@ -47,11 +49,13 @@ public class Deque<Item> implements Iterable<Item> {
         checkAdd(item);
         // create new node and move tail;
         Node node = new Node();
-        node.value = item;
+        node.setValue(item);
         if (tail != null)
-            tail.next = node;
-        node.prev = tail;
+            tail.setNext(node);
+        node.setPrev(tail);
         tail = node;
+        if (this.size == 0)
+            head = tail;
         this.size++;
     }
 
@@ -60,10 +64,12 @@ public class Deque<Item> implements Iterable<Item> {
         // throw NoSuchElementException if deque is empty
         checkRemove();
         Node node = head;
-        Item item = node.value;
-        head = node.next;
+        Item item = node.getValue();
+        head = node.getNext();
         if (head != null)
-            head.prev = null;
+            head.setPrev(null);
+        else
+            tail = null;
         node = null;
         this.size--;
         return item;
@@ -74,19 +80,27 @@ public class Deque<Item> implements Iterable<Item> {
         // throw NoSuchElementException if deque is empty
         checkRemove();
         Node node = tail;
-        Item item = node.value;
-        tail = node.prev;
+        Item item = node.getValue();
+        tail = node.getPrev();
         node = null;
         if (tail != null)
-            tail.next = null;
+            tail.setNext(null);
+        else {
+            head = null;
+        }
         this.size--;
         return item;
     }
 
     // return an iterator over items in order from front to end
     public Iterator<Item> iterator() {
-        return new Iterator<Item>() {
-            Node node = head;
+        class DequeIterator implements Iterator<Item> {
+            private Node node = head;
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
 
             @Override
             public boolean hasNext() {
@@ -97,11 +111,12 @@ public class Deque<Item> implements Iterable<Item> {
             public Item next() {
                 if (node == null)
                     throw new NoSuchElementException();
-                Item item = node.value;
-                node = node.next;
+                Item item = node.getValue();
+                node = node.getNext();
                 return item;
             }
-        };
+        }
+        return new DequeIterator();
     }
 
     private void checkRemove() {
@@ -116,9 +131,33 @@ public class Deque<Item> implements Iterable<Item> {
     }
 
     private class Node {
-        Item value;
-        Node next;
-        Node prev;
+        private Item value;
+        private Node next;
+        private Node prev;
+        public Item getValue() {
+            return value;
+        }
+
+        public void setValue(Item val) {
+            this.value = val;
+        }
+
+        public Node getNext() {
+            return next;
+        }
+
+        public void setNext(Node nxt) {
+            this.next = nxt;
+        }
+
+        public Node getPrev() {
+            return prev;
+        }
+
+        public void setPrev(Node prv) {
+            this.prev = prv;
+        }
+
     }
 
     // unit testing
