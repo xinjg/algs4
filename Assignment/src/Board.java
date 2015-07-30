@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Board {
@@ -12,15 +12,14 @@ public class Board {
     private boolean isGoal = false;
 
     public Board(int[][] blocks) {
-
-        this.dimension = blocks.length;
         this.blocks = copy(blocks);
+        this.dimension = this.blocks.length;
+//        blocks = null; // avoid OutOfMemoryError
         blankRow = dimension - 1;
         blankCol = dimension - 1;
         /* hamming manhattan */
         for (int i = 0; i < this.blocks.length; i++) {
             for (int j = 0; j < this.blocks[i].length; j++) {
-                // this.blocks[i][j]=blocks[i][j];//copy blocks
                 /*
                  * do not count the blank square when computing the Hamming or
                  * Manhattan priorities
@@ -85,7 +84,9 @@ public class Board {
                 break;
             }
         }
-        return new Board(twinBlocks);
+        Board twin = new Board(twinBlocks);
+//        twinBlocks = null; // avoid OutOfMemoryError
+        return twin;
     }
 
     // does this board equal y?
@@ -117,30 +118,34 @@ public class Board {
      */
     public Iterable<Board> neighbors() {
         int max = dimension - 1;
-        List<Board> neighbors = new ArrayList<Board>(4);
+        List<Board> neighbors = new LinkedList<Board>();
         // move blank square up
         if (blankRow > 0) {
             int[][] blocksUp = copy(this.blocks);
             move(blocksUp, blankRow - 1, blankCol, blankRow, blankCol);
             neighbors.add(new Board(blocksUp));
+            blocksUp = null; // avoid OutOfMemoryError
         }
         // move blank square down
         if (blankRow < max) {
             int[][] blocksDown = copy(this.blocks);
             move(blocksDown, blankRow + 1, blankCol, blankRow, blankCol);
             neighbors.add(new Board(blocksDown));
+            blocksDown = null; // avoid OutOfMemoryError
         }
         // move blank square left
         if (blankCol > 0) {
             int[][] blocksLeft = copy(this.blocks);
             move(blocksLeft, blankRow, blankCol - 1, blankRow, blankCol);
             neighbors.add(new Board(blocksLeft));
+            blocksLeft = null;
         }
         // move blank square right
         if (blankCol < max) {
             int[][] blocksRight = copy(this.blocks);
             move(blocksRight, blankRow, blankCol + 1, blankRow, blankCol);
             neighbors.add(new Board(blocksRight));
+            blocksRight = null; // avoid OutOfMemoryError
         }
         return neighbors;
     }
@@ -182,7 +187,10 @@ public class Board {
         }
     }
 
-    private int[][] copy(int[][] copyBlocks) {
+    /*
+     * not modify the input blocks
+     */
+    private int[][] copy(final int[][] copyBlocks) {
         int length = copyBlocks.length;
         int[][] copy = new int[length][length];
         for (int i = 0; i < copy.length; i++) {

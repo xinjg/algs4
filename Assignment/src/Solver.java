@@ -2,14 +2,26 @@ import java.util.Iterator;
 
 public class Solver {
     private class Pripority implements Comparable<Pripority> {
+        private int moves;
         private int pripority;
         private Board board;
-        Board board(){
-            return this.board;
-        }
+
         Pripority(Board board, int moves) {
             this.board = board;
-            this.pripority = board.hamming() + moves;
+            int hanhattan = 0;
+            if (board != null) {
+                hanhattan = board.manhattan();
+            }
+            this.moves = moves;
+            this.pripority = moves + hanhattan;
+        }
+
+        Board board() {
+            return this.board;
+        }
+
+        int moves() {
+            return this.moves;
         }
 
         @Override
@@ -23,11 +35,9 @@ public class Solver {
         }
     }
 
-    private MinPQ<Pripority> minPQ = new MinPQ<Pripority>();
-    private MinPQ<Pripority> twinMinPQ = new MinPQ<Pripority>();
     private int moves = 0;
-    private Board prev = null;
-    private Board twinPrev = null;
+    private Pripority prev = null;
+    private Pripority twinPrev = null;
     private Queue<Board> queue = new Queue<Board>();
     private boolean isSolvable = false;
 
@@ -36,48 +46,51 @@ public class Solver {
         if (initial == null) {
             throw new NullPointerException("initial board cannot be null");
         }
+        MinPQ<Pripority> minPQ = new MinPQ<Pripority>();
+        MinPQ<Pripority> twinMinPQ = new MinPQ<Pripority>();
         minPQ.insert(new Pripority(initial, 0));
         Board twin = initial.twin();
         twinMinPQ.insert(new Pripority(twin, 0));
-        queue.enqueue(initial);
-        while (!minPQ.min().board().isGoal() && !twinMinPQ.min().board().isGoal()) {
-            Board min = minPQ.delMin().board();
-            Board twinMin = twinMinPQ.delMin().board();
-            while (!minPQ.isEmpty()) {
-//                type type = (type) en.nextElement();
-                minPQ.delMin();
-            }
-            while (!twinMinPQ.isEmpty()) {
-                twinMinPQ.delMin();
-            }
-            this.moves++;
-//            queue.enqueue(min);
+        prev = new Pripority(null, 0);
+        twinPrev = new Pripority(null, 0);
+        while (!minPQ.min().board().isGoal()
+                && !twinMinPQ.min().board().isGoal()) {
+            Pripority minPripority = minPQ.delMin();
+            Board min = minPripority.board();
+            queue.enqueue(min);
+            Pripority twinMinPripoity = twinMinPQ.delMin();
+            Board twinMin = twinMinPripoity.board();
+            int step = minPripority.moves() + 1;
             for (Iterator<Board> iterator = min.neighbors().iterator(); iterator
                     .hasNext();) {
                 Board neighbor = iterator.next();
-                if (!neighbor.equals(prev)) {
-                    minPQ.insert(new Pripority(neighbor, moves));
+                if (!neighbor.equals(prev.board())) {
+                    minPQ.insert(new Pripority(neighbor, step));
                 }
             }
-            if (prev!=null) {
-                queue.enqueue(min);
-            }
-            prev = min;
+            prev = minPripority;
+            int twinStep = twinPrev.moves() + 1;
             for (Iterator<Board> iterator = twinMin.neighbors().iterator(); iterator
                     .hasNext();) {
                 Board neighbor = iterator.next();
-                if (!neighbor.equals(twinPrev)) {
-                    twinMinPQ.insert(new Pripority(neighbor, moves));
+                if (!neighbor.equals(twinPrev.board())) {
+                    twinMinPQ.insert(new Pripority(neighbor, twinStep));
                 }
             }
-            twinPrev = twinMin;
+            twinPrev = twinMinPripoity;
         }
         if (minPQ.min().board().isGoal()) {
+            Pripority goalPripority=minPQ.delMin();
+            Board goal=goalPripority.board();
+            this.queue.enqueue(goal);
             this.isSolvable = true;
+            this.moves = goalPripority.moves();
         } else {
             this.isSolvable = false;
             this.moves = -1;
         }
+        minPQ=null;
+        twinMinPQ=null;
     }
 
     // is the initial board solvable?
